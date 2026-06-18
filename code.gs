@@ -694,12 +694,94 @@ function updateParty(partyId,updates){
 
 function deleteParty(partyId){
   assertRole([CFG.ROLES.ADMIN]);
-  const sh=SS().getSheetByName(CFG.SH.PARTIES);
+  const ss = SS();
+  const sh=ss.getSheetByName(CFG.SH.PARTIES);
   const d=sh.getDataRange().getValues();
+  let found = false;
   for(let i=1;i<d.length;i++){
-    if(String(d[i][0])===String(partyId)){ sh.deleteRow(i+1); return true; }
+    if(String(d[i][0])===String(partyId)){ 
+      sh.deleteRow(i+1); 
+      found = true; 
+      break; 
+    }
   }
-  throw new Error('Party not found');
+  
+  // Clean up existing monthly (M_*) and lifting (L_*) sheets for deleted party
+  try {
+    const sheets = ss.getSheets();
+    sheets.forEach(s => {
+      const name = s.getName();
+      if (name.startsWith(CFG.MONTHLY_PREFIX) || name.startsWith(CFG.LIFTING_PREFIX)) {
+        if (s.getLastRow() >= 2) {
+          const sData = s.getDataRange().getValues();
+          // Iterate backwards to safely delete matching rows
+          for (let k = sData.length - 1; k >= 1; k--) {
+            if (String(sData[k][1]).trim() === String(partyId).trim()) {
+              s.deleteRow(k + 1);
+            }
+          }
+        }
+      }
+    });
+    SpreadsheetApp.flush();
+  } catch(e) {
+    console.error("deleteParty cleanup error: " + e.message);
+  }
+  
+  if (!found) throw new Error('Party not found');
+  return true;
+}
+
+function reconcileOrphansForMonth(monthKey) {
+  monthKey = monthKey || mk();
+  const ss = SS();
+  const parties = getAllPartiesRaw();
+  if (!parties || !parties.length) return; // Safeguard: don't wipe monthly entries if main parties list is completely empty
+  
+  const validPartyIds = {};
+  parties.forEach(p => {
+    if (p['Party ID']) validPartyIds[String(p['Party ID']).trim()] = true;
+  });
+  
+  const mSh = ss.getSheetByName(CFG.MONTHLY_PREFIX + monthKey);
+  if (mSh && mSh.getLastRow() >= 2) {
+    const d = mSh.getDataRange().getValues();
+    const h = d[0];
+    const pidIdx = h.indexOf('Party ID');
+    if (pidIdx !== -1) {
+      let deletedCount = 0;
+      for (let i = d.length - 1; i >= 1; i--) {
+        const rowPid = String(d[i][pidIdx]).trim();
+        if (rowPid && !validPartyIds[rowPid]) {
+          mSh.deleteRow(i + 1);
+          deletedCount++;
+        }
+      }
+      if (deletedCount > 0) {
+        SpreadsheetApp.flush();
+      }
+    }
+  }
+
+  const lSh = ss.getSheetByName(CFG.LIFTING_PREFIX + monthKey);
+  if (lSh && lSh.getLastRow() >= 2) {
+    const d = lSh.getDataRange().getValues();
+    const h = d[0];
+    const pidIdx = h.indexOf('Party ID');
+    if (pidIdx !== -1) {
+      let deletedCount = 0;
+      for (let i = d.length - 1; i >= 1; i--) {
+        const rowPid = String(d[i][pidIdx]).trim();
+        if (rowPid && !validPartyIds[rowPid]) {
+          lSh.deleteRow(i + 1);
+          deletedCount++;
+        }
+      }
+      if (deletedCount > 0) {
+        SpreadsheetApp.flush();
+      }
+    }
+  }
 }
 
 function resetAndSeedParties() {
@@ -933,6 +1015,14 @@ function syncMonthlyFromLedger(monthKey) {
 
 function getMonthData(monthKey){
   monthKey=monthKey||mk();
+  
+  // Clean up any orphan rows before continuing
+  try {
+    reconcileOrphansForMonth(monthKey);
+  } catch(e) {
+    console.error("reconcileOrphansForMonth error in getMonthData: " + e.message);
+  }
+
   const sh=SS().getSheetByName(CFG.MONTHLY_PREFIX+monthKey);
   if(!sh||sh.getLastRow()<2) return[];
   
@@ -1271,6 +1361,14 @@ function listLiftingMonths(){
 
 function getLiftingData(monthKey){
   monthKey = monthKey || mk();
+  
+  // Clean up any orphan rows before continuing
+  try {
+    reconcileOrphansForMonth(monthKey);
+  } catch(e) {
+    console.error("reconcileOrphansForMonth error in getLiftingData: " + e.message);
+  }
+
   const sheetName = CFG.LIFTING_PREFIX + monthKey;
   let sh = SS().getSheetByName(sheetName);
   if(!sh) sh = ensureLiftingSheet(monthKey);
