@@ -1,0 +1,8 @@
+{
+  "name": "Sefali Credit Flow",
+  "description": "Sefali Business Hub",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
