@@ -74,15 +74,46 @@ export function SettingsPage({ settings, setSettings, saveTheme, toast, refresh 
                 toast('Audit failed: ' + e.message, 'error');
               });
             }}>🔍 Audit Ledgers</button>
-            <button className="btn" style={{ color: '#b91c1c', borderColor: '#fca5a5', fontWeight: 600, background: '#fef2f2' }} onClick={() => {
+            <button className="btn" style={{ color: '#b91c1c', borderColor: '#fca5a5', fontWeight: 600, background: '#fef2f2' }} onClick={async () => {
               if (window.confirm("⚠️ CRITICAL ACTION:\n\nThis will purge ALL existing parties & transactions from the Google Sheets and replace them with the 10 official Sefali Credit Flow parties.\n\nThis action is permanent and cannot be undone.\n\nDo you want to proceed?")) {
-                toast('Purging & Seeding Official Parties...', 'info');
-                api.resetAndSeedParties().then(() => {
-                  toast('Sefali Parties Configured ✓', 'success');
+                toast('Purging & Seeding Official Sefali Parties...', 'info');
+                try {
+                  // 1. Get existing parties
+                  const existingParties = await api.getParties();
+                  
+                  // 2. Delete each party
+                  for (let i = 0; i < existingParties.length; i++) {
+                    const p = existingParties[i];
+                    toast(`Clearing old party: ${p.accountName || 'Unnamed'}...`, 'info');
+                    await api.deleteParty(p.partyId);
+                  }
+
+                  // 3. New 10 parties list
+                  const sefaliParties = [
+                    { slNo: '1', accountName: 'Pravin Enterprise', contactNo: '9832936672', address: 'Owner: Parvin Goyal, Benachity Salbagan Road Durgapur 713213', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '2', accountName: 'Gayatri Traders', contactNo: '9239181619', address: 'Owner: Arup Bhattacharya, Barakar mini bus stand oposit side.', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '3', accountName: 'Singh Enterprise', contactNo: '9832419071', address: 'Owner: Rita Singh, Dhrubdangal near hindi school(Burnpur)', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '4', accountName: 'Burnwal Spice', contactNo: '8927515285', address: 'Owner: Ajay Burnwal, Pandaveswar', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '5', accountName: 'Bharti Distributor', contactNo: '9832213999', address: 'Owner: Bharti Acharya, B/6 by y sagarbhanga colony Durgapur 713211', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '6', accountName: 'Bandana Enterprise', contactNo: '9734547162', address: 'Owner: Arijit Ghosh, Panchsimul, Keotara (Jhapandanga)Pin- 713166', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '7', accountName: 'R.S. Agro Impex', contactNo: '9734297964', address: 'Owner: Shib Narayan Shaw, Guskara Alutia, Near- Satyam Mandir. Pin -713128', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '8', accountName: 'Sandhya Enterprise', contactNo: '7908847364', address: 'Owner: Sourav Kesh, Naran Dighi Binay Nagar Durga Tala(Burdwan). Pin- 713101', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '9', accountName: 'Agnivo Enterprise', contactNo: '9733999555', address: 'Owner: Biswajit Nandi, Bhatar', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' },
+                    { slNo: '10', accountName: 'Ghosh Traders', contactNo: '7001996720', address: 'Owner: Suddhadhan Ghosh, Katwa', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' }
+                  ];
+
+                  // 4. Add each new party
+                  for (let i = 0; i < sefaliParties.length; i++) {
+                    const sp = sefaliParties[i];
+                    toast(`Adding new party: ${sp.accountName}...`, 'info');
+                    await api.addParty(sp);
+                  }
+
+                  toast('Sefali Parties Configured Successfully ✓', 'success');
                   refresh();
-                }).catch((e: any) => {
-                  toast('Error: ' + e.message, 'error');
-                });
+                } catch (e: any) {
+                  toast('Error during seed: ' + e.message, 'error');
+                }
               }
             }}>🚨 Purge & Seed Sefali Parties</button>
           </div>
