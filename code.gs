@@ -531,12 +531,58 @@ function initDatabase(){
     [['theme','ocean'],['remindersEnabled','true'],['adminEmail','']].forEach(r=>sSh.appendRow(r));
 
   const pSh=SS().getSheetByName(CFG.SH.PARTIES);
-  if(pSh.getLastRow()<2)
-    CFG.DEMO_PARTIES.forEach(p=>pSh.appendRow([uid('P'),p[0],p[1],p[2],p[3],'',0,p[4],
-      'ACTIVE',50,Session.getActiveUser().getEmail(),new Date(),new Date()]));
+  let needSeed = false;
+  if (pSh.getLastRow() < 2) {
+    needSeed = true;
+  } else {
+    const firstRowVal = pSh.getRange(2, 3).getValue(); // Column 3: Account Name
+    if (firstRowVal !== 'Pravin Enterprise (Parvin Goyal)' && firstRowVal !== 'Pravin Enterprise') {
+      needSeed = true;
+    }
+  }
+
+  if (needSeed) {
+    if (pSh.getLastRow() >= 2) {
+      pSh.getRange(2, 1, pSh.getLastRow() - 1, CFG.COLS.PARTIES.length).clearContent();
+    }
+    const now = new Date();
+    CFG.DEMO_PARTIES.forEach(p => {
+      pSh.appendRow([
+        uid('P'),
+        p[0],  // SL NO
+        p[1],  // Account Name
+        p[2],  // Contact No
+        p[3],  // Address
+        '',    // Email
+        0,     // Credit Limit
+        p[4],  // Credit Days
+        'ACTIVE',
+        100,   // Score
+        '',    // Payment Mode
+        Session.getActiveUser().getEmail() || 'System',
+        now,
+        now
+      ]);
+    });
+  }
 
   ensureMonthSheet(mk());
   ensureLiftingSheet(mk());
+  
+  if (needSeed) {
+    try {
+      const activeMonthKey = mk();
+      const curMonthSh = getOrCreateMonthSheet(activeMonthKey);
+      const curLiftingSh = getOrCreateLiftingSheet(activeMonthKey);
+      if (curMonthSh.getLastRow() >= 2) curMonthSh.getRange(2, 1, curMonthSh.getLastRow() - 1, CFG.COLS.MONTHLY.length).clearContent();
+      if (curLiftingSh.getLastRow() >= 2) curLiftingSh.getRange(2, 1, curLiftingSh.getLastRow() - 1, CFG.COLS.LIFTING.length).clearContent();
+      populateMonthSheet(curMonthSh, activeMonthKey);
+      populateLiftingSheet(curLiftingSh, activeMonthKey);
+    } catch (e) {
+      console.error('Seed sync error:', e.message);
+    }
+  }
+
   autoCreateNextMonth();
   return{success:true};
 }
