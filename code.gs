@@ -229,7 +229,7 @@ function populateMonthSheet(sh,monthKey){
     const target=dn===0?inv:fmtDate(addDays(now,dn));
     return[uid('MR'),p['Party ID'],p['Account Name'],p['Contact No'],
       0,0,0,0,0,
-      p['Credit Days'] || '7 DAYS',inv,target,'',
+      p['Credit Days'] || '21 DAYS',inv,target,'',
       p['Credit Days']==='ADVANCE'?'ADVANCE':'ACTIVE',
       p['Score']||50,0,'',fmtDate(now)];
   });
@@ -614,11 +614,68 @@ function getAllPartiesRaw(){
   return d.slice(1).map(r=>{ const o={}; h.forEach((k,i)=>o[k]=r[i]); return o; });
 }
 
+function autoMigrate7to21() {
+  try {
+    const ss = SS();
+    const pSh = ss.getSheetByName(CFG.SH.PARTIES);
+    if (pSh && pSh.getLastRow() >= 2) {
+      const d = pSh.getDataRange().getValues();
+      const h = d[0];
+      const cdIdx = h.indexOf('Credit Days');
+      if (cdIdx !== -1) {
+        let changed = false;
+        for (let i = 1; i < d.length; i++) {
+          if (String(d[i][cdIdx]).trim().toUpperCase() === '7 DAYS') {
+            pSh.getRange(i + 1, cdIdx + 1).setValue('21 DAYS');
+            changed = true;
+          }
+        }
+        if (changed) SpreadsheetApp.flush();
+      }
+    }
+    
+    const sheets = ss.getSheets();
+    sheets.forEach(sh => {
+      const name = sh.getName();
+      if (name.startsWith(CFG.MONTHLY_PREFIX) && sh.getLastRow() >= 2) {
+        const d = sh.getDataRange().getValues();
+        const h = d[0];
+        const cdIdx = h.indexOf('Credit Days');
+        const invIdx = h.indexOf('Invoice Date');
+        const trgIdx = h.indexOf('Target Date');
+        if (cdIdx !== -1) {
+          let shChanged = false;
+          for (let i = 1; i < d.length; i++) {
+            if (String(d[i][cdIdx]).trim().toUpperCase() === '7 DAYS' || String(d[i][cdIdx]).trim().toUpperCase() === '') {
+              sh.getRange(i + 1, cdIdx + 1).setValue('21 DAYS');
+              if (invIdx !== -1 && trgIdx !== -1) {
+                const invVal = d[i][invIdx];
+                const invD = parseD(invVal);
+                if (invD) {
+                  const targetD = addDays(invD, 21);
+                  sh.getRange(i + 1, trgIdx + 1).setValue(fmtDate(targetD));
+                }
+              }
+              shChanged = true;
+            }
+          }
+          if (shChanged) SpreadsheetApp.flush();
+        }
+      }
+    });
+  } catch(e) {
+    console.error("autoMigrate7to21 error: " + e.message);
+  }
+}
+
 function getParties(){
+  try {
+    autoMigrate7to21();
+  } catch(e) {}
   return getAllPartiesRaw().map(p=>({
     partyId:p['Party ID'], slNo:p['SL NO'], accountName:p['Account Name'],
     contactNo:p['Contact No'], address:p['Address'], email:p['Email'],
-    creditLimit:toNum(p['Credit Limit']), creditDays:p['Credit Days'],
+    creditLimit:toNum(p['Credit Limit']), creditDays:p['Credit Days'] || '21 DAYS',
     status:p['Status'], score:parseInt(p['Score'])||50, paymentMode:p['Payment Mode']
   }));
 }
