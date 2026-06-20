@@ -117,16 +117,16 @@ const CFG = {
     LIFTING_HISTORY:['Timestamp','Party ID','Account Name','Month','Target Quantity (kg)','Trip Delivery (kg)','Cumulative Delivered (kg)','Remaining (kg)','Completion %','Status','Collector','Notes']
   },
   DEMO_PARTIES:[
-    ['1','Pravin Enterprise (Parvin Goyal)','9832936672','Benachity Salbagan Road Durgapur 713213','7 DAYS'],
-    ['2','Gayatri Traders (Arup Bhattacharya)','9239181619','Barakar mini bus stand oposit side.','7 DAYS'],
-    ['3','Singh Enterprise (Rita Singh)','9832419071','Dhrubdangal near hindi school(Burnpur)','7 DAYS'],
-    ['4','Burnwal Spice (Ajay Burnwal)','8927515285','Pandaveswar','7 DAYS'],
-    ['5','Bharti Distributor (Bharti Acharya)','9832213999','B/6 by y sagarbhanga colony Durgapur 713211','7 DAYS'],
-    ['6','Bandana Enterprise (Arijit Ghosh)','9734547162','Panchsimul, Keotara (Jhapandanga)Pin- 713166','7 DAYS'],
-    ['7','R.S. Agro Impex (Shib Narayan Shaw)','9734297964','Guskara Alutia, Near- Satyam Mandir. Pin -713128','7 DAYS'],
-    ['8','Sandhya Enterprise (Sourav Kesh)','7908847364','Naran Dighi Binay Nagar Durga Tala(Burdwan). Pin- 713101','7 DAYS'],
-    ['9','Agnivo Enterprise (Biswajit Nandi)','9733999555','Bhatar','7 DAYS'],
-    ['10','Ghosh Traders (Suddhadhan Ghosh)','7001996720','Katwa','7 DAYS']
+    ['1','Pravin Enterprise (Parvin Goyal)','9832936672','Benachity Salbagan Road Durgapur 713213','21 DAYS'],
+    ['2','Gayatri Traders (Arup Bhattacharya)','9239181619','Barakar mini bus stand oposit side.','21 DAYS'],
+    ['3','Singh Enterprise (Rita Singh)','9832419071','Dhrubdangal near hindi school(Burnpur)','21 DAYS'],
+    ['4','Burnwal Spice (Ajay Burnwal)','8927515285','Pandaveswar','21 DAYS'],
+    ['5','Bharti Distributor (Bharti Acharya)','9832213999','B/6 by y sagarbhanga colony Durgapur 713211','21 DAYS'],
+    ['6','Bandana Enterprise (Arijit Ghosh)','9734547162','Panchsimul, Keotara (Jhapandanga)Pin- 713166','21 DAYS'],
+    ['7','R.S. Agro Impex (Shib Narayan Shaw)','9734297964','Guskara Alutia, Near- Satyam Mandir. Pin -713128','21 DAYS'],
+    ['8','Sandhya Enterprise (Sourav Kesh)','7908847364','Naran Dighi Binay Nagar Durga Tala(Burdwan). Pin- 713101','21 DAYS'],
+    ['9','Agnivo Enterprise (Biswajit Nandi)','9733999555','Bhatar','21 DAYS'],
+    ['10','Ghosh Traders (Suddhadhan Ghosh)','7001996720','Katwa','21 DAYS']
   ],
   DEMO_LIFTING_TARGETS: { }
 };
@@ -146,10 +146,10 @@ function parseD(s){
 function mk(d){ d=d||new Date(); return Utilities.formatDate(d,Session.getScriptTimeZone(),'yyyy-MM'); }
 function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
 function cdNum(s){
-  if(!s) return 7;
+  if(!s) return 21;
   if(s==='ADVANCE') return 0;
   const m=String(s).match(/(\d+)/);
-  return m?parseInt(m[1]):7;
+  return m?parseInt(m[1]):21;
 }
 function SS(){
   try {
@@ -639,7 +639,7 @@ function syncNewPartyToExistingMonths(partyId, p) {
       if (!exists) {
         sh.appendRow([
           uid('MR'), partyId, p.accountName || '', p.contactNo || '',
-          0, 0, 0, 0, 0, p.creditDays || '7 DAYS', inv, target, '',
+          0, 0, 0, 0, 0, p.creditDays || '21 DAYS', inv, target, '',
           p.creditDays === 'ADVANCE' ? 'ADVANCE' : 'ACTIVE', 50, 0, '', inv
         ]);
       }
@@ -663,7 +663,7 @@ function addParty(data){
   const sh=SS().getSheetByName(CFG.SH.PARTIES);
   const id=uid('P');
   sh.appendRow([id,data.slNo||'',data.accountName||'',data.contactNo||'',
-    data.address||'',data.email||'',toNum(data.creditLimit),data.creditDays||'7 DAYS',
+    data.address||'',data.email||'',toNum(data.creditLimit),data.creditDays||'21 DAYS',
     'ACTIVE',50,data.paymentMode||'',Session.getActiveUser().getEmail(),new Date(),new Date()]);
   try{
     const monthKey=mk();

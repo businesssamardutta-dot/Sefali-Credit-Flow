@@ -155,7 +155,7 @@ function EditModal({ row, mk, onClose, onSaved, toast }: any) {
   const [openingBalance, setOpeningBalance] = useState<string>(String(row['Opening Balance'] || '0'));
   const [newCredit, setNewCredit] = useState<string>(String(row['New Credit'] || '0'));
   const [paidAmount, setPaidAmount] = useState<string>(String(row['Paid Amount'] || '0'));
-  const [creditDays, setCreditDays] = useState(row['Credit Days'] || '7 DAYS');
+  const [creditDays, setCreditDays] = useState(row['Credit Days'] || '21 DAYS');
   const [invoiceDate, setInvoiceDate] = useState(row['Invoice Date'] || '');
   const [targetDate, setTargetDate] = useState(row['Target Date'] || '');
   const [busy, setBusy] = useState(false);
@@ -186,7 +186,7 @@ function EditModal({ row, mk, onClose, onSaved, toast }: any) {
             <div className="field"><label>Opening Balance</label><input type="number" step="0.01" value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} disabled={busy} /></div>
             <div className="field"><label>New Credit</label><input type="number" step="0.01" value={newCredit} onChange={e => setNewCredit(e.target.value)} disabled={busy} /></div>
             <div className="field"><label>Paid Amount</label><input type="number" step="0.01" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} disabled={busy} /></div>
-            <div className="field"><label>Credit Days</label><select value={creditDays} onChange={e => setCreditDays(e.target.value)} disabled={busy}><option>ADVANCE</option><option>3 DAYS</option><option>7 DAYS</option><option>15 DAYS</option><option>30 DAYS</option><option>45 DAYS</option></select></div>
+            <div className="field"><label>Credit Days</label><select value={creditDays} onChange={e => setCreditDays(e.target.value)} disabled={busy}><option>ADVANCE</option><option>3 DAYS</option><option>7 DAYS</option><option>15 DAYS</option><option>21 DAYS</option><option>30 DAYS</option><option>45 DAYS</option></select></div>
             <div className="field"><label>Invoice Date</label><input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} disabled={busy} /></div>
             <div className="field"><label>Target Date</label><input type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} disabled={busy} /></div>
           </div>

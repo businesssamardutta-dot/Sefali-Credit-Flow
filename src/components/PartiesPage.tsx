@@ -28,7 +28,7 @@ export function PartiesPage({ parties, toast, refresh }: any) {
 }
 
 function PartyModal({ party, onClose, onSaved, toast }: any) {
-  const [f, setF] = useState(party ? { slNo: party.slNo, accountName: party.accountName, contactNo: party.contactNo, address: party.address || '', email: party.email || '', creditLimit: party.creditLimit || 0, creditDays: party.creditDays || '7 DAYS', paymentMode: party.paymentMode || '' } : { slNo: '', accountName: '', contactNo: '', address: '', email: '', creditLimit: 0, creditDays: '7 DAYS', paymentMode: '' });
+  const [f, setF] = useState(party ? { slNo: party.slNo, accountName: party.accountName, contactNo: party.contactNo, address: party.address || '', email: party.email || '', creditLimit: party.creditLimit || 0, creditDays: party.creditDays || '21 DAYS', paymentMode: party.paymentMode || '' } : { slNo: '', accountName: '', contactNo: '', address: '', email: '', creditLimit: 0, creditDays: '21 DAYS', paymentMode: '' });
   const [busy, setBusy] = useState(false);
   const fc = (e: any) => setF(p => ({ ...p, [e.target.name]: e.target.value }));
 
@@ -54,7 +54,7 @@ function PartyModal({ party, onClose, onSaved, toast }: any) {
             <div className="field"><label>Contact No</label><input name="contactNo" value={f.contactNo} onChange={fc} disabled={busy} /></div>
             <div className="field"><label>Email</label><input name="email" type="email" value={f.email} onChange={fc} disabled={busy} /></div>
             <div className="field" style={{ gridColumn: 'span 2' }}><label>Address</label><input name="address" value={f.address} onChange={fc} disabled={busy} /></div>
-            <div className="field"><label>Credit Days</label><select name="creditDays" value={f.creditDays} onChange={fc} disabled={busy}><option>ADVANCE</option><option>3 DAYS</option><option>7 DAYS</option><option>15 DAYS</option><option>30 DAYS</option><option>45 DAYS</option></select></div>
+            <div className="field"><label>Credit Days</label><select name="creditDays" value={f.creditDays} onChange={fc} disabled={busy}><option>ADVANCE</option><option>3 DAYS</option><option>7 DAYS</option><option>15 DAYS</option><option>21 DAYS</option><option>30 DAYS</option><option>45 DAYS</option></select></div>
             <div className="field"><label>Credit Limit (₹)</label><input name="creditLimit" type="number" value={f.creditLimit} onChange={fc} disabled={busy} /></div>
             <div className="field"><label>Payment Mode</label><select name="paymentMode" value={f.paymentMode} onChange={fc} disabled={busy}><option value="">Select…</option><option>Cash</option><option>NEFT</option><option>RTGS</option><option>UPI</option><option>Cheque</option></select></div>
           </div>
